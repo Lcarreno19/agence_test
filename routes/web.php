@@ -39,3 +39,6 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'App\Http\Controllers\ProfileController@password']);
 });
 
+// Busquedas Ajax
+Route::post('/consultar-relatorio', [App\Http\Controllers\DesempenhoController::class, 'consultarRelatorio'])->name('consultar-relatorio');
+

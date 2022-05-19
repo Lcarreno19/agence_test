@@ -71,9 +71,25 @@
             <h4 class="card-title ">Relatorio</h4>
             <p class="card-category" id='parrafo_relatorio'></p>
           </div>
-          <div class="card-body">
-
-          </div>
+          <div class="card-body table-responsive">
+              <table class="table table-hover" id="tabla-relatorio">
+                <thead class="text-warning">
+                  <th>Período</th>
+                  <th>Receita Líquida</th>
+                  <th>Custo Fixo</th>
+                  <th>Comissão</th>
+                  <th>Lucro</th>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Dakota Rice</td>
+                    <td>$36,738</td>
+                    <td>Niger</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
         </div>
       </div>
     </div>
@@ -85,12 +101,46 @@
 <script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
 
         $(".chosen-select").chosen({
             no_results_text: "Oops, nothing found!"
         });
+
         $("#relatorio").on( "click", function() {
-            $('#relatorio_div').css('display', 'block'); //muestro mediante id
+
+            if (validacionFecha(0) > 0) {
+
+                if (validacionFecha(1) > 0) {
+
+                    $('#relatorio_div').css('display', 'block'); //muestro mediante id
+                    var combo_selected = $(".chosen-select").val(); // valores del combo
+                    var desde = $("#fecha_desde").val();
+                    var hasta = $("#fecha_hasta").val();
+                    var URL = {!! json_encode(url('consultar-relatorio')) !!}; //URL del servicio
+                    // Comienzo la peticion Ajax al back
+                    $.ajax({
+                        type:'POST',
+                        url: URL,
+                        dataType: 'json',
+                        data:{consultores:combo_selected,desde:desde, hasta:hasta},
+                        success:function(response){
+                            console.log(response);
+                            //location.reload();
+                        }
+                    });
+                } else {
+
+                    alert('Por favor colocar una fecha Final');
+                }
+            } else {
+
+                alert('Por favor colocar una fecha Inicial');
+            }
 
         });
         $("#grafico").on( "click", function() {
@@ -102,19 +152,23 @@
 
         });
     });
-    function getSelectValues(select) {
-        var result = [];
-        var options = select && select.options;
-        var opt;
 
-        for (var i=0, iLen=options.length; i<iLen; i++) {
-            opt = options[i];
+    function validacionFecha(param){
+        if (param > 0) {
 
-            if (opt.selected) {
-                result.push(opt.value || opt.text);
-            }
+            s= $('#fecha_hasta').val();
+        } else {
+
+            s= $('#fecha_desde').val();
         }
-        return result;
+        var bits = s.split('-');
+        var d = new Date(bits[0] + '/' + bits[1] + '/' + bits[2]);
+        if (d == 'Invalid Date') {
+            return 0;
+        } else {
+            return 1;
+        }
     }
+
 </script>
 @endsection

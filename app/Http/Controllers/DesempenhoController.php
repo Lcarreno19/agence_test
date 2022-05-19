@@ -24,73 +24,55 @@ class DesempenhoController extends Controller
         return view('pages.desempenho', ['consultores' => $consultores]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function consultarRelatorio(Request $request)
     {
-        //
-    }
+        $inputs = $request->all();
+        $callback = [];
+        for ($i=0; $i < count($inputs["consultores"]); $i++) {
+            $data = [];
+            $data['consultor'] = $inputs["consultores"][$i];
+            $data['receita_liquida'] = 0;
+            $data['comissao'] = 0;
+            $data['custo_fixo'] = 0;
+            $data['lucro'] = 0;
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-    }
+            // receita liquida
+            $valor = DB::table('cao_os')
+            ->leftjoin('cao_fatura', 'cao_os.co_os', '=', 'cao_fatura.co_os')
+            ->select('cao_fatura.valor', 'cao_fatura.data_emissao', 'cao_fatura.total_imp_inc','cao_fatura.comissao_cn')
+            ->where('cao_os.co_usuario', '=', $inputs["consultores"][$i])
+            ->whereBetween('cao_fatura.data_emissao', [$inputs["desde"], $inputs["hasta"]])
+            ->get();
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
+            $valor_orden = 0;
+            $imp_total = 0;
+            //recorrido para validar cada una de las OS y asi saber el calculo exacto para cada 1
+            foreach ($valor as $orden_serv) {
 
-    }
+                // Calculo de Receita Liquida
+                $valor_orden = $orden_serv->valor - (($orden_serv->valor * $orden_serv->total_imp_inc)/ 100);
+                $data['receita_liquida'] += $valor_orden;
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+                // Calculo de Comissao
+                $comision_orden = (($orden_serv->valor - (($orden_serv->valor * $orden_serv->total_imp_inc)/ 100)) * $orden_serv->comissao_cn)/100;
+                $data['comissao'] += $comision_orden;
+            }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+            // calculo de custo fixo
+            $custo_fixo = DB::table('cao_salario')
+            ->select('brut_salario')
+            ->where('co_usuario', '=', $inputs["consultores"][$i])
+            ->first();
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
+            $data['custo_fixo'] = $custo_fixo->brut_salario ?? 0;
+            // Calculo de Lucro
+            $data['lucro'] = $data['receita_liquida'] - ($data['custo_fixo'] + $data['comissao']);
+            // Incluyo la data al array del callback
+            array_push($callback, $data);
 
-    public function filter(Request $request)
-    {
-        dd($request->all());
+        }
+        dd($callback);
+        return response()->json(['success'=>'Got Simple Ajax Request.']);
+
     }
 }
