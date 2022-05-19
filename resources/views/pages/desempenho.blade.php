@@ -66,31 +66,7 @@
         </div>
       </div>
       <div class="col-md-12" id='relatorio_div' style="display: none;">
-        <div class="card">
-          <div class="card-header card-header-primary">
-            <h4 class="card-title ">Relatorio</h4>
-            <p class="card-category" id='parrafo_relatorio'></p>
-          </div>
-          <div class="card-body table-responsive">
-              <table class="table table-hover" id="tabla-relatorio">
-                <thead class="text-warning">
-                  <th>Período</th>
-                  <th>Receita Líquida</th>
-                  <th>Custo Fixo</th>
-                  <th>Comissão</th>
-                  <th>Lucro</th>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td>Dakota Rice</td>
-                    <td>$36,738</td>
-                    <td>Niger</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-        </div>
+
       </div>
     </div>
   </div>
@@ -118,10 +94,13 @@
                 if (validacionFecha(1) > 0) {
 
                     $('#relatorio_div').css('display', 'block'); //muestro mediante id
+                    $('#relatorio_div div').remove();
+
                     var combo_selected = $(".chosen-select").val(); // valores del combo
                     var desde = $("#fecha_desde").val();
                     var hasta = $("#fecha_hasta").val();
                     var URL = {!! json_encode(url('consultar-relatorio')) !!}; //URL del servicio
+
                     // Comienzo la peticion Ajax al back
                     $.ajax({
                         type:'POST',
@@ -129,7 +108,20 @@
                         dataType: 'json',
                         data:{consultores:combo_selected,desde:desde, hasta:hasta},
                         success:function(response){
-                            console.log(response);
+                            $(function() {
+                                $.each(response.result, function(i, item) {
+                                    var html = "";
+                                    html = '<div class="card"><div class="card-header card-header-primary"><h4 class="card-title ">'+item.consultor+'</h4><p class="card-category"></p></div><div class="card-body table-responsive"><table class="table table-hover" id="tabla-'+item.consultor+'"><thead class="text-warning"><th>Período</th><th>Receita Líquida</th><th>Custo Fixo</th><th>Comissão</th><th>Lucro</th></thead><tbody>';
+                                    //var $tr = $('<tr>').append(
+                                        //$('<td>').text(item.receita_liquida),
+                                        //$('<td>').text(item.custo_fixo),
+                                        //$('<td>').text(item.comissao)
+                                    //); //.appendTo('#records_table');
+                                    html += "<tr><td>" + desde+" / " + hasta +"<td>" + item.receita_liquida + "<td>" + item.custo_fixo + "<td>" + item.comissao + "<td>" + item.lucro + "</tr>"
+                                    html += '</tbody></table></div></div>';
+                                    $((html)).appendTo("#relatorio_div");
+                                });
+                            });
                             //location.reload();
                         }
                     });

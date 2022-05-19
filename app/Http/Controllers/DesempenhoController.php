@@ -67,12 +67,17 @@ class DesempenhoController extends Controller
             $data['custo_fixo'] = $custo_fixo->brut_salario ?? 0;
             // Calculo de Lucro
             $data['lucro'] = $data['receita_liquida'] - ($data['custo_fixo'] + $data['comissao']);
+
+            //le doy format a cada registro
+            $data['receita_liquida'] = number_format($data['receita_liquida'], 2,',','.');
+            $data['custo_fixo'] = number_format($data['custo_fixo'], 2,',','.');
+            $data['comissao'] = number_format($data['comissao'], 2,',','.');
+            $data['lucro'] = number_format($data['lucro'], 2,',','.');
             // Incluyo la data al array del callback
             array_push($callback, $data);
 
         }
-        dd($callback);
-        return response()->json(['success'=>'Got Simple Ajax Request.']);
+        return response()->json(['result' => $callback]);
 
     }
 }
