@@ -80,4 +80,76 @@ class DesempenhoController extends Controller
         return response()->json(['result' => $callback]);
 
     }
+
+    public function consultarPizza(Request $request)
+    {
+        $inputs = $request->all();
+        $callback = [];
+        for ($i=0; $i < count($inputs["consultores"]); $i++) {
+            $data = [];
+            $data['consultor'] = $inputs["consultores"][$i];
+            $data['receita_liquida'] = 0;
+
+            // receita liquida
+            $valor = DB::table('cao_os')
+            ->leftjoin('cao_fatura', 'cao_os.co_os', '=', 'cao_fatura.co_os')
+            ->select('cao_fatura.valor', 'cao_fatura.data_emissao', 'cao_fatura.total_imp_inc','cao_fatura.comissao_cn')
+            ->where('cao_os.co_usuario', '=', $inputs["consultores"][$i])
+            ->whereBetween('cao_fatura.data_emissao', [$inputs["desde"], $inputs["hasta"]])
+            ->get();
+
+            $valor_orden = 0;
+            //recorrido para validar cada una de las OS y asi saber el calculo exacto para cada 1
+            foreach ($valor as $orden_serv) {
+
+                // Calculo de Receita Liquida
+                $valor_orden = $orden_serv->valor - (($orden_serv->valor * $orden_serv->total_imp_inc)/ 100);
+                $data['receita_liquida'] += $valor_orden;
+            }
+
+            //le doy format a cada registro
+            //$data['receita_liquida'] = number_format($data['receita_liquida'], 2,',','.');
+            // Incluyo la data al array del callback
+            array_push($callback, $data);
+
+        }
+        return response()->json(['result' => $callback]);
+
+    }
+
+    public function consultarBar(Request $request)
+    {
+        $inputs = $request->all();
+        $callback = [];
+        for ($i=0; $i < count($inputs["consultores"]); $i++) {
+            $data = [];
+            $data['consultor'] = $inputs["consultores"][$i];
+            $data['receita_liquida'] = 0;
+
+            // receita liquida
+            $valor = DB::table('cao_os')
+            ->leftjoin('cao_fatura', 'cao_os.co_os', '=', 'cao_fatura.co_os')
+            ->select('cao_fatura.valor', 'cao_fatura.data_emissao', 'cao_fatura.total_imp_inc','cao_fatura.comissao_cn')
+            ->where('cao_os.co_usuario', '=', $inputs["consultores"][$i])
+            ->whereBetween('cao_fatura.data_emissao', [$inputs["desde"], $inputs["hasta"]])
+            ->get();
+
+            $valor_orden = 0;
+            //recorrido para validar cada una de las OS y asi saber el calculo exacto para cada 1
+            foreach ($valor as $orden_serv) {
+
+                // Calculo de Receita Liquida
+                $valor_orden = $orden_serv->valor - (($orden_serv->valor * $orden_serv->total_imp_inc)/ 100);
+                $data['receita_liquida'] += $valor_orden;
+            }
+
+            //le doy format a cada registro
+            //$data['receita_liquida'] = number_format($data['receita_liquida'], 2,',','.');
+            // Incluyo la data al array del callback
+            array_push($callback, $data);
+
+        }
+        return response()->json(['result' => $callback]);
+
+    }
 }

@@ -42,3 +42,7 @@ Route::group(['middleware' => 'auth'], function () {
 // Busquedas Ajax
 Route::post('/consultar-relatorio', [App\Http\Controllers\DesempenhoController::class, 'consultarRelatorio'])->name('consultar-relatorio');
 
+Route::post('/consultar-pizza', [App\Http\Controllers\DesempenhoController::class, 'consultarPizza'])->name('consultar-pizza');
+
+Route::post('/consultar-bar', [App\Http\Controllers\DesempenhoController::class, 'consultarBar'])->name('consultar-bar');
+

@@ -68,6 +68,26 @@
       <div class="col-md-12" id='relatorio_div' style="display: none;">
 
       </div>
+
+      <div class="col-md-12" id='pizza_div' style="display: none;">
+        <div class="row">
+            <div class="col-md-12">
+
+                <canvas id="miGrafico"></canvas>
+
+            </div>
+        </div>
+      </div>
+
+      <div class="col-md-12" id='barra_div' style="display: none;">
+        <div class="row">
+            <div class="col-md-12">
+
+                <canvas id="miGraficoBarra"></canvas>
+
+            </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -75,6 +95,13 @@
 @section('myjs')
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
+    <!-- Chart JS -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js" integrity="sha256-JG6hsuMjFnQ2spWq0UiaDRJBaarzhFbUxiUTxQDA9Lk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js" integrity="sha256-XF29CBwU1MWLaGEnsELogU6Y6rcc5nCkhhx89nFMIDQ=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js" integrity="sha256-J2sc79NPV/osLcIpzL3K8uJyAD7T5gaEFKlLDM18oxY=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js" integrity="sha256-CfcERD4Ov4+lKbWbYqXD6aFM9M51gN4GUEtDhkWABMo=" crossorigin="anonymous"></script>
+
 <script type="text/javascript">
     $(document).ready(function() {
         $.ajaxSetup({
@@ -136,12 +163,41 @@
 
         });
         $("#grafico").on( "click", function() {
-            $('#relatorio_div').css('display', 'none'); //muestro mediante id
 
+            if (validacionFecha(0) > 0) {
+
+                if (validacionFecha(1) > 0) {
+
+                    $('#relatorio_div').css('display', 'none'); //muestro mediante id
+                    $('#pizza_div').css('display', 'none'); //muestro mediante id
+                    $('#barra_div').css('display', 'block'); //muestro mediante id
+
+                    miBarra();
+                } else {
+
+                    alert('Por favor colocar una fecha Final');
+                }
+            } else {
+
+                alert('Por favor colocar una fecha Inicial');
+            }
         });
         $("#pizza").on( "click", function() {
-            $('#relatorio_div').css('display', 'none'); //muestro mediante id
 
+            if (validacionFecha(0) > 0) {
+
+                if (validacionFecha(1) > 0) {
+                    $('#relatorio_div').css('display', 'none'); //muestro mediante id
+                    $('#pizza_div').css('display', 'block'); //muestro mediante id
+                    miPizza();
+                } else {
+
+                    alert('Por favor colocar una fecha Final');
+                }
+            } else {
+
+                alert('Por favor colocar una fecha Inicial');
+            }
         });
     });
 
@@ -162,5 +218,115 @@
         }
     }
 
+    function miPizza(){
+
+        var URL = {!! json_encode(url('consultar-pizza')) !!}; //URL del servicio
+        var combo_selected = $(".chosen-select").val(); // valores del combo
+        var desde = $("#fecha_desde").val();
+        var hasta = $("#fecha_hasta").val();
+        $.ajax({
+            url: URL,
+            dataType: 'json',
+            type:'POST',
+            data:{consultores:combo_selected,desde:desde, hasta:hasta},
+            success: function(data) {
+                var nombre = [];
+                var stock = [];
+                var color = ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'];
+                var bordercolor =  ['rgba(255,99,132,1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'];
+
+                for (var i in data.result) {
+                    nombre.push(data.result[i].consultor);
+                    stock.push(data.result[i].receita_liquida);
+                }
+
+                var chartdata = {
+                    labels: nombre,
+                    datasets: [{
+                        label: nombre,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 2,
+                        hoverBackgroundColor: color,
+                        hoverBorderColor: bordercolor,
+                        data: stock
+                    }]
+                };
+
+                var mostrar = $("#miGrafico");
+
+                var grafico = new Chart(mostrar, {
+                    type: 'doughnut',
+                    data: chartdata,
+                    options: {
+                        responsive: true,
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function miBarra(){
+
+        var URL = {!! json_encode(url('consultar-pizza')) !!}; //URL del servicio
+        var combo_selected = $(".chosen-select").val(); // valores del combo
+        var desde = $("#fecha_desde").val();
+        var hasta = $("#fecha_hasta").val();
+        $.ajax({
+            url: URL,
+            dataType: 'json',
+            type:'POST',
+            data:{consultores:combo_selected,desde:desde, hasta:hasta},
+            success: function(data) {
+                var nombre = [];
+                var stock = [];
+                var color = ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'];
+                var bordercolor =  ['rgba(255,99,132,1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'];
+                console.log(data);
+
+                for (var i in data.result) {
+                    nombre.push(data.result[i].consultor);
+                    stock.push(data.result[i].receita_liquida);
+                }
+
+                var chartdata = {
+                    labels: nombre,
+                    datasets: [{
+                        label: nombre,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 2,
+                        hoverBackgroundColor: color,
+                        hoverBorderColor: bordercolor,
+                        data: stock
+                    }]
+                };
+
+                var mostrar = $("#miGraficoBarra");
+
+                var grafico = new Chart(mostrar, {
+                    type: 'bar',
+                    data: chartdata,
+                    options: {
+                        responsive: true,
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+        });
+    }
 </script>
 @endsection
