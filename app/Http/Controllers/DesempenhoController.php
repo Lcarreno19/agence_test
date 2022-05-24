@@ -14,12 +14,12 @@ class DesempenhoController extends Controller
      */
     public function index()
     {
-        $consultores = DB::table('CAO_USUARIO')
-        ->leftjoin('PERMISSAO_SISTEMA', 'CAO_USUARIO.CO_USUARIO', '=', 'PERMISSAO_SISTEMA.CO_USUARIO')
-        ->select('CAO_USUARIO.CO_USUARIO as nombre_usuario')
-        ->where('PERMISSAO_SISTEMA.CO_SISTEMA', '=', 1)
-        ->where('PERMISSAO_SISTEMA.IN_ATIVO', '=', 'S')
-        ->whereIn('PERMISSAO_SISTEMA.CO_TIPO_USUARIO', [0,1,2])
+        $consultores = DB::table('cao_usuario')
+        ->leftjoin('permissao_sistema', 'cao_usuario.co_usuario', '=', 'permissao_sistema.co_usuario')
+        ->select('cao_usuario.co_usuario as nombre_usuario')
+        ->where('permissao_sistema.co_sistema', '=', 1)
+        ->where('permissao_sistema.in_ativo', '=', 'S')
+        ->whereIn('permissao_sistema.co_tipo_usuario', [0,1,2])
         ->get();
         return view('pages.desempenho', ['consultores' => $consultores]);
     }
